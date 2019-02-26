@@ -2,6 +2,13 @@ import express from 'express';
 import graphlHTTP from 'express-graphql';
 import mongoose from 'mongoose';
 import schema from './api/schema/index';
+import fs from 'fs';
+import http  from 'http';
+import https  from 'https';
+
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/ew.chilaka.in/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/ew.chilaka.in/cert.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
 
 
 const app = express();
@@ -18,7 +25,7 @@ app.use((req, res, next) => {
 });
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/nrblock');
+mongoose.connect('mongodb://localhost/ewallet');
 
 app.get('/', (req, res) => {
     res.json({
@@ -32,6 +39,8 @@ app.use('/api', graphlHTTP({
 }));
 
 
-app.listen(PORT, () => {
-    console.log(`Server is listening on PORT ${PORT}`);
-});
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+//httpServer.listen(PORT);
+httpsServer.listen(5000);
